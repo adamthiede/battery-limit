@@ -1,10 +1,16 @@
 #!/bin/bash
-#default options
-BAT='BAT0'
-LIMIT='95'
-BC=0
-LC=0
-AVAIL_BATS=$(cd /sys/class/power_supply/ && ls -d BAT*)
+
+setup(){
+  if [[ ! -d /sys/class/power_supply/ ]];then echo "Platform does not have a battery."; exit 1; fi
+  AVAIL_BATS=($(cd /sys/class/power_supply/ && ls -d BAT*))
+  BAT=${AVAIL_BATS[0]}
+  if [[ -z ${AVAIL_BATS[*]} ]];then echo "No batteries."; exit 1; fi
+  # default options
+  LIMIT='95'
+  BC=false
+  LC=false
+  SVCFILE="/usr/lib/systemd/system/battery-limit.service"
+}
 
 helptext() {
   echo -e "
@@ -12,46 +18,76 @@ USAGE: battery-limit.sh [OPTIONS]
 
 OPTIONS:
   -h - OPTIONAL - show this help text.
-  -b - OPTIONAL - battery to use from /sys/class/power_supply/. Default is BAT0.
-       Choose from the following: ${AVAIL_BATS}
+  -b - OPTIONAL - battery to use from /sys/class/power_supply/. Default is the first in the following list.
+       Batteries detected: ${AVAIL_BATS[*]}
   -l - OPTIONAL - limit percentage between 1-99. Default is 95.
-  "
+
+ENABLE: 
+  battery-limit.sh
+  sudo systemctl daemon-reload
+  sudo systemctl enable battery-limit.service --now
+DISABLE:
+  sudo systemctl disable battery-limit.service --now
+"
 }
 
-while getopts 'hb:l:' opt
-do
-  case $opt in
-    h) helptext ;;
-    b) BAT=$OPTARG BC='1' ;;
-    l) LIMIT=$OPTARG LC='1' ;;
-  esac
-done
-
 validate() {
-  if [[ -d /sys/class/power_supply/ ]];then
-    echo "Platform has battery power supply, continue"
-  else
-    echo "Platform does not have a battery."
+  if [[ ${LIMIT} -gt "99" || ${LIMIT} -lt "1" ]];then
+    echo "Limit should be between 1 and 99"
     exit 1
   fi
-  if [[ -d /sys/class/power_supply/${BAT} ]];then
-    echo "Battery ${BAT} exists."
-  else
+  if [[ ! ${AVAIL_BATS[*]} =~ "${BAT}" ]];then
     echo "
     Battery ${BAT} does not exist.
     Choose from the available batteries:
     ${AVAIL_BATS}
     "
+    exit 1
   fi
-  if [[ ${LIMIT} -gt "99" ]];then
-    echo "Limit should be 
 }
 
 show(){
-  echo "battery: ${BAT} ${BC}"
-  echo "limit: ${LIMIT} ${LC}"
+  echo "battery: ${BAT} chosen: ${BC}"
+  echo "limit: ${LIMIT} chosen: ${LC}"
 }
 
-# Run!
+makeService(){
+  svcText="[Unit]
+Description=Set battery charge thresholds
+After=multi-user.target
+StartLimitBurst=0
+
+[Service]
+Type=oneshot
+Restart=on-failure
+RemainAfterExit=yes
+ExecStart=/bin/bash -c 'echo ${LIMIT} > /sys/class/power_supply/${BAT}/charge_control_end_threshold'
+ExecStop=/bin/bash -c 'echo 100 > /sys/class/power_supply/${BAT}/charge_control_end_threshold'
+
+[Install]
+WantedBy=multi-user.target
+"
+  echo -e "#####\n${svcText}\n#####"
+  echo -e "Need root to install the service to:\n${SVCFILE}\n"
+  echo "${svcText}" | sudo tee "${SVCFILE}"
+
+}
+
+###############################
+########### Run! ##############
+###############################
+
+setup
+
+while getopts 'hb:l:' opt
+do
+  case $opt in
+    h) helptext; exit 0 ;;
+    b) BAT=$OPTARG BC=true ;;
+    l) LIMIT=$OPTARG LC=true ;;
+  esac
+done
+
 validate
-show
+makeService
+
