@@ -1,0 +1,15 @@
+# Maintainer: Adam Thiede <adamj@mailbox.org>
+pkgname=battery-limit
+pkgver=0.1
+pkgrel=1
+pkgdesc="script and service to limit battery charge"
+url="https://gitlab.com/elagost/battery-limit"
+arch="noarch"
+license="GPL"
+depends="systemd"
+source="${url}/-/archive/${pkgver}/${pkgname}-${pkgver}.tar.xz"
+
+package() {
+    make install
+}
+
