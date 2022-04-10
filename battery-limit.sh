@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 setup(){
   if [[ ! -d /sys/class/power_supply/ ]];then echo "Platform does not have a battery."; exit 1; fi

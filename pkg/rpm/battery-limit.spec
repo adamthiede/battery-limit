@@ -20,12 +20,12 @@ Limit the battery charge of a battery-powered Linux device with systemd.
 %setup -q
 
 %install
-install -Dm755 battery-limit.sh ${_bindir}/battery-limit.sh
-install -Dm755 battery-limit.service ${_prefix}/lib/systemd/system/battery-limit.service
+install -Dm755 battery-limit.sh %{buildroot}%{_bindir}/battery-limit.sh
+install -Dm755 battery-limit.service %{buildroot}%{_prefix}/lib/systemd/system/battery-limit.service
 
 %files
 %{_bindir}/battery-limit.sh
-${_prefix}/lib/systemd/system/battery-limit.service
+%{_prefix}/lib/systemd/system/battery-limit.service
 %doc README.md
 %license LICENSE
 
