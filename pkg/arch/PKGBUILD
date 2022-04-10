@@ -10,11 +10,6 @@ depends=("systemd")
 source=("${url}/-/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz")
 
 package() {
-    echo "SRCDIR"
-    ls -alh "${srcdir}"
-    echo "PKGDIR"
-    ls -alh "${pkgdir}"
-    echo "DONE"
     install -Dm755 ${srcdir}/${pkgname}-${pkgver}/battery-limit.sh ${pkgdir}/usr/bin/battery-limit.sh
     install -Dm755 ${srcdir}/${pkgname}-${pkgver}/battery-limit.service ${pkgdir}/usr/lib/systemd/system/battery-limit.service
 }

@@ -5,7 +5,7 @@ Version: 0.1
 Release: 1%{?dist}
 License: GPL
 URL: https://gitlab.com/elagost/battery-limit
-Source: https://github.com/elagost/battery-limit/archive/%{version}.tar.gz
+Source: https://gitlab.com/elagost/battery-limit/-/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildRequires: systemd
 
@@ -20,10 +20,12 @@ Limit the battery charge of a battery-powered Linux device with systemd.
 %setup -q
 
 %install
-cp battery-limit.sh %{_bindir}/battery-limit.sh
+install -Dm755 battery-limit.sh ${_bindir}/battery-limit.sh
+install -Dm755 battery-limit.service ${_prefix}/lib/systemd/system/battery-limit.service
 
 %files
 %{_bindir}/battery-limit.sh
+${_prefix}/lib/systemd/system/battery-limit.service
 %doc README.md
 %license LICENSE
 
