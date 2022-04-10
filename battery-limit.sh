@@ -36,7 +36,7 @@ validate() {
     echo "Limit should be between 1 and 99"
     exit 1
   fi
-  if [[ ! ${AVAIL_BATS[*]} =~ "${BAT}" ]];then
+  if [[ ! ${AVAIL_BATS[*]} =~ ${BAT} ]];then
     echo "
     Battery ${BAT} does not exist.
     Choose from the available batteries:
@@ -85,6 +85,7 @@ do
     h) helptext; exit 0 ;;
     b) BAT=$OPTARG BC=true ;;
     l) LIMIT=$OPTARG LC=true ;;
+    *) exit 1 ;;
   esac
 done
 
