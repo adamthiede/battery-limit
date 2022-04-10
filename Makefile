@@ -5,8 +5,9 @@ endif
 DESTDIR=${PREFIX}
 
 default:
-	shellcheck
+	install
 
-clean:
-	rm -f launcher
+install:
+	install -Dm 0755 battery-limit.sh ${DESTDIR}/bin/battery-limit.sh
+	install -Dm 0755 battery-limit.service ${DESTDIR}/lib/systemd/system/battery-limit.service
 
