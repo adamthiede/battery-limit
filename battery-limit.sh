@@ -10,6 +10,7 @@ setup(){
   BC=false
   LC=false
   SVCFILE="/usr/lib/systemd/system/battery-limit.service"
+  ELEVATE_CMD=$(command -v doas || command -v sudo)
 }
 
 helptext() {
@@ -24,10 +25,10 @@ OPTIONS:
 
 ENABLE: 
   battery-limit.sh
-  sudo systemctl daemon-reload
-  sudo systemctl enable battery-limit.service --now
+  ${ELEVATE_CMD} systemctl daemon-reload
+  ${ELEVATE_CMD} systemctl enable battery-limit.service --now
 DISABLE:
-  sudo systemctl disable battery-limit.service --now
+  ${ELEVATE_CMD} systemctl disable battery-limit.service --now
 "
 }
 
@@ -69,7 +70,7 @@ WantedBy=multi-user.target
 "
   echo -e "#####\n${svcText}\n#####"
   echo -e "Need root to install the service to:\n${SVCFILE}\n"
-  echo "${svcText}" | sudo tee "${SVCFILE}"
+  echo "${svcText}" | ${ELEVATE_CMD} tee "${SVCFILE}"
 
 }
 
