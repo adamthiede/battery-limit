@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 setup(){
   if [[ ! -d /sys/class/power_supply/ ]];then echo "Platform does not have a battery."; exit 1; fi
@@ -10,6 +10,7 @@ setup(){
   BC=false
   LC=false
   SVCFILE="/usr/lib/systemd/system/battery-limit.service"
+  RCFILE="/etc/init.d/battery-limit"
   ELEVATE_CMD=$(command -v doas || command -v sudo)
 }
 
@@ -74,6 +75,19 @@ WantedBy=multi-user.target
 
 }
 
+makeOpenRC(){
+	svcText="#!/sbin/openrc-run
+start() {
+	echo ${LIMIT} > /sys/class/power_supply/${BAT}/charge_control_end_threshold
+}
+stop() {
+	echo 100 > /sys/class/power_supply/${BAT}/charge_control_end_threshold
+}
+"
+	echo "${svcText}" | ${ELEVATE_CMD} tee "${RCFILE}"
+	${ELEVATE_CMD} chmod +x "${RCFILE}"
+}
+
 ###############################
 ########### Run! ##############
 ###############################
@@ -91,5 +105,10 @@ do
 done
 
 validate
-makeService
+if [[ $(command -v systemctl) ]];then
+	# we can be reasonably certain we're running systemd
+	makeService
+else
+	makeOpenRC
+fi
 
