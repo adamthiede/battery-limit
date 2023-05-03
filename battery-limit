@@ -1,0 +1,7 @@
+#!/sbin/openrc-run
+start() {
+	echo ${LIMIT} > /sys/class/power_supply/${BAT}/charge_control_end_threshold
+}
+stop() {
+	echo 100 > /sys/class/power_supply/${BAT}/charge_control_end_threshold
+}

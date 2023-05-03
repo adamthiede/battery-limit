@@ -1,12 +1,13 @@
 #!/bin/bash
 
 setup(){
+  test -f /etc/battery-limit.conf && . /etc/battery-limit.conf
   if [[ ! -d /sys/class/power_supply/ ]];then echo "Platform does not have a battery."; exit 1; fi
   AVAIL_BATS=($(cd /sys/class/power_supply/ && ls -d BAT*))
   BAT=${AVAIL_BATS[0]}
   if [[ -z ${AVAIL_BATS[*]} ]];then echo "No batteries."; exit 1; fi
   # default options
-  LIMIT='95'
+  LIMIT="${LIMIT:-95}"
   BC=false
   LC=false
   SVCFILE="/usr/lib/systemd/system/battery-limit.service"
